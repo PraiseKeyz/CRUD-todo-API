@@ -15,7 +15,7 @@ const dbPath = path.join(__dirname, "data", "todos.json");
 
 // Helper function to read/write the database
 const readDB = () => JSON.parse(fs.readFileSync(dbPath, "utf-8"));
-const writeDB = (data) => fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+ const writeDB = (data) => fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 
 // Routes
 
@@ -27,12 +27,15 @@ app.get("/todos", (req, res) => {
 
 // Create a new todo
 app.post("/todos", (req, res) => {
-  const { title, completed = false } = req.body;
+  const { title, content, completed = false } = req.body;
   if (!title) {
     return res.status(400).json({ error: "Title is required" });
   }
+  if (!content) {
+    return res.status(400).json({ error: "Content is required" });
+  }
   const todos = readDB();
-  const newTodo = { id: Date.now(), title, completed };
+  const newTodo = { id: Date.now(), title, content, completed };
   todos.push(newTodo);
   writeDB(todos);
   res.status(201).json(newTodo);
@@ -41,13 +44,15 @@ app.post("/todos", (req, res) => {
 // Update a todo
 app.put("/todos/:id", (req, res) => {
   const { id } = req.params;
-  const { title, completed } = req.body;
+  const { title, content, completed } = req.body;
+  console.log(req.body)
   const todos = readDB();
   const todo = todos.find((t) => t.id === parseInt(id));
   if (!todo) {
     return res.status(404).json({ error: "Todo not found" });
   }
   if (title !== undefined) todo.title = title;
+  if (content !== undefined) todo.content = content;
   if (completed !== undefined) todo.completed = completed;
   writeDB(todos);
   res.json(todo);
@@ -62,7 +67,7 @@ app.delete("/todos/:id", (req, res) => {
     return res.status(404).json({ error: "Todo not found" });
   }
   writeDB(updatedTodos);
-  res.status(204).send(); // No content
+  res.json({ message: 'Deleted successfully' }); // No content
 });
 
 // Start server
